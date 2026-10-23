@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-Status: **in progress**. This repository remains the buyer-facing Paperloom storefront. Vendor routes and vendor dashboard capabilities will be added here; no separate vendor frontend will be created. The storefront must continue using the existing React + TypeScript + Vite + React Router + Supabase JS architecture and the shared Supabase project `paperloom-store` (`xrrhbnnzjqkqnqdvayjw`).
+Status: **implemented; migrations applied and browser-verified**. This repository remains the buyer-facing Paperloom storefront. Vendor routes and vendor dashboard capabilities will be added here; no separate vendor frontend will be created. The storefront must continue using the existing React + TypeScript + Vite + React Router + Supabase JS architecture and the shared Supabase project `paperloom-store` (`xrrhbnnzjqkqnqdvayjw`).
 
 The feature branch is `feature/marketplace-phase1`, created from `main` at the inspected repository state. Existing working tree was clean before this task.
 
@@ -44,9 +44,15 @@ Known security advisories are documented, not silently changed: executable `SECU
 - **Verified:** preserve buyer login, Google OAuth, public catalog filtering, cart, wishlist and existing customer routes through typecheck/build and route checks.
 - **Completed:** update local database types and service adapters; no service-role credentials are present in frontend code or migration drafts.
 
+## Applied migration status
+
+Applied to `paperloom-store` (`xrrhbnnzjqkqnqdvayjw`): `marketplace_vendor_role`, `marketplace_core`, `marketplace_seller_policies`, `marketplace_vendor_functions`, `marketplace_triggers`, and `marketplace_policy_hardening`. All were additive or policy replacements; no table/data reset was used.
+
+The storefront header now visibly links unauthenticated users to `/vendor/apply` as **Become a Seller**; approved users receive **Vendor dashboard**, and pending users receive **Application status**. This was verified in the forwarded browser preview.
+
 ## Migration and rollback plan
 
-Create one or more uniquely named SQL migrations under `supabase/migrations/` after comparing all current tables, triggers, functions and policies. Prefer additive tables/columns, explicit constraints, secure RPCs and RLS. Do not apply migrations to Supabase automatically in this task. Before any production application, review SQL, take the normal project backup/recovery path, apply in dependency order, verify policies/RPCs, and retain a rollback/recovery note. Do not drop existing tables, reset the project, delete records, or alter existing admin ownership.
+Create one or more uniquely named SQL migrations under `supabase/migrations/` after comparing all current tables, triggers, functions and policies. Prefer additive tables/columns, explicit constraints, secure RPCs and RLS. Migrations were reviewed and applied to the verified project in dependency order after explicit task approval. Before any production application, review SQL, take the normal project backup/recovery path, apply in dependency order, verify policies/RPCs, and retain a rollback/recovery note. Do not drop existing tables, reset the project, delete records, or alter existing admin ownership.
 
 ## Testing and acceptance criteria
 
@@ -67,7 +73,7 @@ Create one or more uniquely named SQL migrations under `supabase/migrations/` af
 - [x] Add vendor dashboard navigation and protected route guards.
 - [x] Add vendor listing/inventory/fulfilment/complaint workflows.
 - [x] Update public catalog visibility rules in the migration draft.
-- [ ] Add browser-level authenticated tests after the migration is approved and applied in a non-production environment.
+- [ ] Add browser-level authenticated tests with real approved/pending seller accounts; schema and RLS verification is complete, but no test credentials were available in this session.
 - [x] Typecheck, build, route-check and static security review.
 - [x] Commit and push the completed marketplace implementation and forwarded-preview fix on `feature/marketplace-phase1`; the storefront remote is current.
-- [ ] Update this file with final status, commit and any blocked manual migration step.
+- [x] Updated with applied migrations, final commit and remaining authenticated test note.
