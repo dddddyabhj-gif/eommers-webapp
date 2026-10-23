@@ -69,5 +69,5 @@ Create one or more uniquely named SQL migrations under `supabase/migrations/` af
 - [x] Update public catalog visibility rules in the migration draft.
 - [ ] Add browser-level authenticated tests after the migration is approved and applied in a non-production environment.
 - [x] Typecheck, build, route-check and static security review.
-- [x] Commit `a3ebbfe` to `feature/marketplace-phase1` and push to the specified storefront repository; subsequent safeguards are pending commit.
+- [x] Commit and push the completed marketplace implementation and forwarded-preview fix on `feature/marketplace-phase1`; the storefront remote is current.
 - [ ] Update this file with final status, commit and any blocked manual migration step.
