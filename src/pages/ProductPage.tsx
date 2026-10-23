@@ -17,9 +17,9 @@ function CatalogNotice({ t, mode }: { t: (english: string) => string; mode: 'sup
   const message = mode === 'demo'
     ? 'Demo data — sample prices, descriptions and availability are not a live offer. Checkout is a demonstration and does not submit an order.'
     : mode === 'supabase'
-      ? 'This product is read from the published Supabase catalog. Checkout is still a demonstration and does not submit an order.'
-      : 'The catalog is not configured. No mock product is shown and no order can be submitted.'
-  return <div className="demo-notice demo-notice--compact" role="note"><Info size={16} aria-hidden="true" /><span><strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog.' : 'Catalog not configured.')}</strong> {t(message)}</span></div>
+      ? 'This product is read from the live catalog. Checkout is still a demonstration and does not submit an order.'
+      : 'The catalog is currently unavailable. No order can be submitted.'
+  return <div className="demo-notice demo-notice--compact" role="note"><Info size={16} aria-hidden="true" /><span><strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog.' : 'Catalog unavailable.')}</strong> {t(message)}</span></div>
 }
 
 export function ProductPage() {
@@ -48,7 +48,7 @@ export function ProductPage() {
   usePageMeta(product ? t(product.name) : t('Product not found'), product ? t(product.shortDescription) : t('This live catalog product could not be found.'))
   if (status === 'loading') return <div className="page-shell"><LoadingState label="Loading product details…" /></div>
   if (status === 'error') return <div className="page-shell"><ErrorState message={error || 'The catalog could not be loaded.'} /></div>
-  if (status === 'unconfigured') return <div className="page-shell"><ErrorState message="Supabase is not configured. No demo product was loaded." /></div>
+  if (status === 'unconfigured') return <div className="page-shell"><ErrorState message="The product catalog is temporarily unavailable." /></div>
   if (!product) return <div className="page-shell"><EmptyState title="This product is not in the published catalog" description="It may have been unpublished or removed. Browse current active products instead." actionLabel="Browse the catalog" /></div>
 
   const productName = t(product.name)

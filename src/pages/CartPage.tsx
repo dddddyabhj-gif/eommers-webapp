@@ -12,8 +12,8 @@ import { getCartLineUnitPrice, isCartLineAvailable } from '../utils/cart'
 import { formatPKR } from '../utils/money'
 
 function DemoNotice({ t, mode }: { t: (english: string) => string; mode: 'supabase' | 'demo' | 'unconfigured' }) {
-  const copy = mode === 'supabase' ? 'Catalog details come from Supabase, but checkout remains a demonstration and does not submit an order.' : mode === 'demo' ? 'Sample prices, descriptions and availability are not a live offer. Checkout does not submit an order.' : 'No catalog is configured. No mock products are shown and no order can be submitted.'
-  return <div className="demo-notice" role="note"><Info size={16} aria-hidden="true" /><span><strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog, demo checkout.' : 'Catalog not configured.')}</strong> {t(copy)}</span></div>
+  const copy = mode === 'supabase' ? 'Catalog details come from the live catalog, but checkout remains a demonstration and does not submit an order.' : mode === 'demo' ? 'Sample prices, descriptions and availability are not a live offer. Checkout does not submit an order.' : 'No catalog is currently available, and no order can be submitted.'
+  return <div className="demo-notice" role="note"><Info size={16} aria-hidden="true" /><span><strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog, demo checkout.' : 'Catalog unavailable.')}</strong> {t(copy)}</span></div>
 }
 
 function LocalizedOrderSummary({ subtotal, label, mode }: { subtotal: number; label: string; mode: 'supabase' | 'demo' | 'unconfigured' }) {

@@ -15,11 +15,11 @@ type Translator = (english: string) => string
 
 function CatalogNotice({ t, mode, compact = false }: { t: Translator; mode: 'supabase' | 'demo' | 'unconfigured'; compact?: boolean }) {
   const copy = mode === 'supabase'
-    ? 'The catalog is read from Supabase. Checkout remains a demonstration and does not submit an order.'
+    ? 'The catalog is live. Checkout remains a demonstration and does not submit an order.'
     : mode === 'demo'
       ? 'Demo data — sample prices, descriptions and availability are not a live offer. Checkout is a demonstration and does not submit an order.'
-      : 'The catalog is not configured here. No mock products are shown; set Supabase environment values or explicitly opt into demo catalog mode.'
-  return <div className={`demo-notice${compact ? ' demo-notice--compact' : ''}`} role="note"><Info size={16} aria-hidden="true" /><span><strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog.' : 'Catalog not configured.')}</strong> {t(copy)}</span></div>
+      : 'The catalog is currently unavailable. Please check back later.'
+  return <div className={`demo-notice${compact ? ' demo-notice--compact' : ''}`} role="note"><Info size={16} aria-hidden="true" /><span><strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog.' : 'Catalog unavailable.')}</strong> {t(copy)}</span></div>
 }
 
 function CatalogSearch({ t }: { t: Translator }) {
@@ -53,7 +53,7 @@ function useCatalogFilters(products: Product[]) {
 function CatalogState({ status, error }: { status: 'loading' | 'ready' | 'error' | 'unconfigured'; error: string | null }) {
   if (status === 'loading') return <LoadingState label="Loading the live catalog…" />
   if (status === 'error') return <ErrorState message={error || 'The catalog could not be loaded.'} />
-  if (status === 'unconfigured') return <ErrorState message="Supabase is not configured. No fictional fallback catalog was loaded." />
+  if (status === 'unconfigured') return <ErrorState message="The catalog is currently unavailable. Please check back later." />
   return null
 }
 

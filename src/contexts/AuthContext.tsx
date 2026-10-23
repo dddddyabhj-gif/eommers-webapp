@@ -14,6 +14,8 @@ interface AuthValue {
   loading: boolean
   configured: boolean
   error: string | null
+  avatarUrl: string | null
+  displayName: string | null
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -70,11 +72,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
 
     void Promise.all([authService.getOwnProfile(), authService.isCurrentUserAdmin()])
-      .then(([profileResult, adminResult]) => {
+      .then(async ([profileResult, adminResult]) => {
         if (!active) return
         if (profileResult.error) throw profileResult.error
         if (adminResult.error) throw adminResult.error
-        setProfile(profileResult.data)
+        let currentProfile = profileResult.data
+
+        const metaAvatar = (session.user.user_metadata?.avatar_url as string | undefined) ||
+                           (session.user.user_metadata?.picture as string | undefined)
+        const metaName = (session.user.user_metadata?.full_name as string | undefined) ||
+                         (session.user.user_metadata?.name as string | undefined)
+
+        if (metaAvatar && !currentProfile?.avatar_url) {
+          try {
+            await supabase?.from('profiles').update({
+              avatar_url: metaAvatar,
+              ...(!currentProfile?.full_name && metaName ? { full_name: metaName } : {})
+            }).eq('id', session.user.id)
+            if (currentProfile) {
+              currentProfile = {
+                ...currentProfile,
+                avatar_url: metaAvatar,
+                full_name: currentProfile.full_name || metaName || null
+              }
+            }
+          } catch {
+            // non-critical, avatarUrl fallback handles it
+          }
+        }
+
+        setProfile(currentProfile)
         setIsAdmin(Boolean(adminResult.data))
         setError(null)
       })
@@ -88,6 +115,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { active = false }
   }, [session?.user?.id])
 
+  const avatarUrl = profile?.avatar_url ||
+    (session?.user?.user_metadata?.avatar_url as string | undefined) ||
+    (session?.user?.user_metadata?.picture as string | undefined) ||
+    null
+
+  const displayName = profile?.full_name ||
+    (session?.user?.user_metadata?.full_name as string | undefined) ||
+    (session?.user?.user_metadata?.name as string | undefined) ||
+    (session?.user?.email ? session.user.email.split('@')[0] : null)
+
   const value = useMemo<AuthValue>(() => ({
     session,
     user: session?.user ?? null,
@@ -96,6 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     configured: isSupabaseConfigured,
     error,
+    avatarUrl,
+    displayName,
     signOut: async () => {
       const { error: signOutError } = await authService.signOut()
       if (signOutError) throw signOutError
@@ -109,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAdmin(Boolean(adminResult.data))
       setError(null)
     },
-  }), [session, profile, isAdmin, loading, error])
+  }), [session, profile, isAdmin, loading, error, avatarUrl, displayName])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

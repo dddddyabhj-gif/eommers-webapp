@@ -10,7 +10,7 @@ const socialIcons = { Facebook, Instagram, TikTok: Music2, WhatsApp: MessageCirc
 export function SiteFooter() {
   const { t } = useI18n()
   const { categories, mode } = useCatalog()
-  const catalogNote = mode === 'demo' ? 'Product prices, details and availability shown here are sample data, not confirmed offers. Checkout never creates an order.' : mode === 'supabase' ? 'Catalog records are read from Supabase. Checkout remains a demo and never creates an order.' : 'The catalog is not configured. No fictional products are displayed, and checkout does not create orders.'
+  const catalogNote = mode === 'demo' ? 'Product prices, details and availability shown here are sample data, not confirmed offers. Checkout never creates an order.' : mode === 'supabase' ? 'Catalog records are read from the live catalog. Checkout remains a demo and never creates an order.' : 'The catalog is temporarily unavailable. Checkout does not create orders.'
   return <footer className="site-footer">
     <div className="footer-newsletter"><NewsletterSignup /></div>
     <div className="footer-main">

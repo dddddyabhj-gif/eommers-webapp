@@ -43,9 +43,9 @@ export function HomePage() {
   const featuredProducts = mode === 'demo' ? demoProducts.slice(0, 4) : (orderedProducts.filter((product) => product.isFeatured).length ? orderedProducts.filter((product) => product.isFeatured) : orderedProducts).slice(0, 4)
   const newArrivals = orderedProducts.slice(0, 4)
   const currentFaqs = mode === 'demo' ? faqs : [
-    { question: 'Is this a live catalog?', answer: 'Product and category listings are read from the configured Supabase catalog. Availability is shown separately from publication.' },
+    { question: 'Is this a live catalog?', answer: 'Product and category listings are read from our live catalog. Availability is shown separately from publication.' },
     { question: 'Can I place an order?', answer: 'No. Checkout is still a demonstration only. No payment, order or delivery request is submitted.' },
-    { question: 'Are listed items available?', answer: 'Availability is based on the public stock status returned by Supabase and does not expose stock counts.' },
+    { question: 'Are listed items available?', answer: 'Availability is based on real-time public stock status and updated regularly.' },
   ]
 
   return (
@@ -53,8 +53,8 @@ export function HomePage() {
       <HeroSlider />
 
       <aside className="home-demo-note" role="note">
-        <strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog.' : 'Catalog not configured.')}</strong>
-        <span>{t(mode === 'demo' ? 'Current listings are sample catalog content; no order, payment or delivery request is sent.' : mode === 'supabase' ? 'Products and categories are read from Supabase. Checkout remains a demo and no order, payment or delivery request is sent.' : 'No mock products are shown. Configure Supabase or explicitly opt into demo catalog mode.')}</span>
+        <strong>{t(mode === 'demo' ? 'Demo mode.' : mode === 'supabase' ? 'Live catalog.' : 'Catalog unavailable.')}</strong>
+        <span>{t(mode === 'demo' ? 'Current listings are sample catalog content; no order, payment or delivery request is sent.' : mode === 'supabase' ? 'Products and categories are live. Checkout remains a demo and no order, payment or delivery request is sent.' : 'Catalog is currently undergoing maintenance. Please check back soon.')}</span>
       </aside>
 
       <section className="home-section home-categories" aria-labelledby="home-categories-title">
