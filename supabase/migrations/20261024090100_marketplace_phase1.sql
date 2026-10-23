@@ -1,8 +1,6 @@
 -- Paperloom Marketplace Phase 1
 -- Review-only migration: do not apply to production without an explicit database approval.
 
-ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'vendor';
-
 BEGIN;
 
 CREATE TYPE public.seller_status AS ENUM ('pending', 'approved', 'rejected', 'suspended');

@@ -591,3 +591,7 @@ button { font-family: var(--font-body); }
 .vendor-list__row > span { color: var(--terracotta-ink); font-size: 11px; text-transform: capitalize; }
 .vendor-error { display: flex; align-items: center; gap: 10px; color: #8a3c36; background: #f8e8e5; }
 @media (max-width: 780px) { .vendor-form, .vendor-grid { grid-template-columns: 1fr; } .vendor-metrics { gap: 8px; } .vendor-metrics > div { padding: 13px; } .vendor-metrics strong { font-size: 21px; } }
+
+.seller-entry { color: var(--terracotta-ink) !important; font-weight: 700 !important; }
+.seller-entry:hover { color: var(--ink) !important; }
+.mobile-menu__seller { color: var(--terracotta-ink) !important; font-weight: 700; }
