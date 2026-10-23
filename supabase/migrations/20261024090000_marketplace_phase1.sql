@@ -206,6 +206,56 @@ $$;
 REVOKE ALL ON FUNCTION public.vendor_adjust_inventory(uuid, integer, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.vendor_adjust_inventory(uuid, integer, text) TO authenticated;
 
+CREATE FUNCTION public.vendor_update_product(
+  p_product_id uuid,
+  p_name text,
+  p_slug text,
+  p_sku text,
+  p_short_description text,
+  p_description text,
+  p_price numeric,
+  p_supplier_cost numeric,
+  p_fulfillment_expense numeric,
+  p_minimum_profit numeric
+)
+RETURNS public.products
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE result_row public.products;
+BEGIN
+  IF p_price < COALESCE(p_supplier_cost, 0) + COALESCE(p_fulfillment_expense, 0) + COALESCE(p_minimum_profit, 0) THEN
+    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Selling price does not meet the minimum profit rule.';
+  END IF;
+  UPDATE public.products p SET name = p_name, slug = p_slug, sku = NULLIF(p_sku, ''), short_description = COALESCE(p_short_description, ''), description = COALESCE(p_description, ''), price = p_price, supplier_cost = p_supplier_cost, fulfillment_expense = COALESCE(p_fulfillment_expense, 0), minimum_profit = COALESCE(p_minimum_profit, 0), cost_updated_at = now(), moderation_status = 'pending_review', publication_status = 'draft', updated_at = now()
+  WHERE p.id = p_product_id AND p.seller_id IN (SELECT s.id FROM public.seller_profiles s WHERE s.user_id = (SELECT auth.uid()) AND s.status = 'approved')
+  RETURNING p.* INTO result_row;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'Product access was denied.'; END IF;
+  RETURN result_row;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.vendor_update_product(uuid, text, text, text, text, text, numeric, numeric, numeric, numeric) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.vendor_update_product(uuid, text, text, text, text, text, numeric, numeric, numeric, numeric) TO authenticated;
+
+CREATE FUNCTION public.admin_moderate_product(p_product_id uuid, p_status text, p_reason text DEFAULT NULL)
+RETURNS public.products
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE result_row public.products;
+BEGIN
+  IF NOT private.has_role('admin'::public.app_role) THEN RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'Administrator access is required.'; END IF;
+  IF p_status NOT IN ('pending_review', 'approved', 'rejected', 'hidden', 'archived') THEN RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Invalid moderation status.'; END IF;
+  UPDATE public.products SET moderation_status = p_status, moderation_reason = NULLIF(p_reason, ''), moderated_by = (SELECT auth.uid()), moderated_at = now(), publication_status = CASE WHEN p_status IN ('approved') THEN publication_status ELSE 'draft'::public.publication_status END, updated_at = now() WHERE id = p_product_id RETURNING * INTO result_row;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Product was not found.'; END IF;
+  RETURN result_row;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.admin_moderate_product(uuid, text, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_moderate_product(uuid, text, text) TO authenticated;
+
 CREATE FUNCTION public.admin_review_seller(p_seller_id uuid, p_status public.seller_status, p_reason text DEFAULT NULL)
 RETURNS public.seller_profiles
 LANGUAGE plpgsql
@@ -246,6 +296,39 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.admin_decide_marketplace_case(uuid, text, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_decide_marketplace_case(uuid, text, text) TO authenticated;
+
+CREATE FUNCTION public.vendor_order_items()
+RETURNS TABLE (id uuid, order_id uuid, order_number text, product_name_snapshot text, sku_snapshot text, variant_snapshot jsonb, quantity integer, unit_price numeric, line_total numeric, vendor_fulfillment_status text, tracking_number text, tracking_url text, vendor_note text, vendor_updated_at timestamptz, created_at timestamptz)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT oi.id, oi.order_id, o.order_number, oi.product_name_snapshot, oi.sku_snapshot, oi.variant_snapshot, oi.quantity, oi.unit_price, oi.line_total, oi.vendor_fulfillment_status, oi.tracking_number, oi.tracking_url, oi.vendor_note, oi.vendor_updated_at, oi.created_at
+  FROM public.order_items oi JOIN public.orders o ON o.id = oi.order_id
+  WHERE oi.seller_id IN (SELECT s.id FROM public.seller_profiles s WHERE s.user_id = (SELECT auth.uid()) AND s.status = 'approved');
+$$;
+REVOKE ALL ON FUNCTION public.vendor_order_items() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.vendor_order_items() TO authenticated;
+
+CREATE FUNCTION public.vendor_update_order_item(p_item_id uuid, p_status text, p_tracking_number text DEFAULT NULL, p_tracking_url text DEFAULT NULL, p_vendor_note text DEFAULT NULL)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE current_status text;
+BEGIN
+  SELECT vendor_fulfillment_status INTO current_status FROM public.order_items oi WHERE oi.id = p_item_id AND oi.seller_id IN (SELECT s.id FROM public.seller_profiles s WHERE s.user_id = (SELECT auth.uid()) AND s.status = 'approved') FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'Order item access was denied.'; END IF;
+  IF p_status NOT IN ('pending', 'accepted', 'processing', 'shipped', 'delivered', 'cancelled') OR (current_status = 'pending' AND p_status NOT IN ('accepted', 'cancelled')) OR (current_status = 'accepted' AND p_status NOT IN ('processing', 'cancelled')) OR (current_status = 'processing' AND p_status NOT IN ('shipped', 'cancelled')) OR (current_status = 'shipped' AND p_status <> 'delivered') OR current_status IN ('delivered', 'cancelled') THEN
+    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Invalid vendor fulfilment transition.';
+  END IF;
+  UPDATE public.order_items SET vendor_fulfillment_status = p_status, tracking_number = NULLIF(p_tracking_number, ''), tracking_url = NULLIF(p_tracking_url, ''), vendor_note = NULLIF(p_vendor_note, ''), vendor_updated_at = now() WHERE id = p_item_id;
+  RETURN true;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.vendor_update_order_item(uuid, text, text, text, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.vendor_update_order_item(uuid, text, text, text, text) TO authenticated;
 
 CREATE FUNCTION private.touch_marketplace_updated_at() RETURNS trigger LANGUAGE plpgsql SET search_path = '' AS $$ BEGIN NEW.updated_at := now(); RETURN NEW; END; $$;
 REVOKE ALL ON FUNCTION private.touch_marketplace_updated_at() FROM PUBLIC, anon, authenticated;

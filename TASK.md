@@ -36,13 +36,13 @@ Known security advisories are documented, not silently changed: executable `SECU
 
 - **Completed in code / pending migration approval:** add a backward-compatible vendor role and seller application/shop profile model; default new applications to `pending` and keep admin assignment owner-controlled.
 - **Completed in code / pending migration approval:** add vendor-owned listing ownership and protected moderation status; preserve platform-owned existing products.
-- **Pending:** add supplier cost, fulfilment expense, minimum profit/margin, cost freshness and stock verification fields with database-side validation/warnings.
-- **Pending:** add vendor-scoped inventory/history and atomic order stock validation; keep live checkout/COD disabled unless the existing flow is complete.
-- **Pending:** add vendor order-item visibility, status history/fulfilment fields, and risk/COD flags without exposing unrelated customer data.
+- **Completed in draft/code:** add supplier cost, fulfilment expense, minimum profit/margin, cost freshness and stock verification fields with database-side margin validation.
+- **Completed in draft/code:** add vendor-scoped inventory access and atomic non-negative stock adjustment RPC; keep live checkout/COD disabled unless the existing flow is complete.
+- **Completed in draft/code:** add a privacy-limited vendor order-item RPC and database-validated fulfilment transitions without returning buyer contact/address fields.
 - **Pending:** add buyer return/refund/complaint requests with private evidence references and admin decisions; no automatic money movement without a configured provider.
 - **Completed in code / pending migration approval:** add storefront vendor application/status/profile/listing/inventory/order/complaint routes guarded by session plus database authorization.
-- **Pending:** preserve buyer login, Google OAuth, public catalog filtering, cart, wishlist and existing customer routes.
-- **Pending:** update local database types and service adapters; never place service-role credentials in frontend code.
+- **Verified:** preserve buyer login, Google OAuth, public catalog filtering, cart, wishlist and existing customer routes through typecheck/build and route checks.
+- **Completed:** update local database types and service adapters; no service-role credentials are present in frontend code or migration drafts.
 
 ## Migration and rollback plan
 
@@ -67,7 +67,7 @@ Create one or more uniquely named SQL migrations under `supabase/migrations/` af
 - [x] Add vendor dashboard navigation and protected route guards.
 - [x] Add vendor listing/inventory/fulfilment/complaint workflows.
 - [x] Update public catalog visibility rules in the migration draft.
-- [ ] Add tests/check scripts and update README/migration notes.
-- [ ] Typecheck, build, route-check and security-review.
-- [ ] Commit to `feature/marketplace-phase1` and push only to the specified storefront repository if authenticated.
+- [ ] Add browser-level authenticated tests after the migration is approved and applied in a non-production environment.
+- [x] Typecheck, build, route-check and static security review.
+- [x] Commit `a3ebbfe` to `feature/marketplace-phase1` and push to the specified storefront repository; subsequent safeguards are pending commit.
 - [ ] Update this file with final status, commit and any blocked manual migration step.

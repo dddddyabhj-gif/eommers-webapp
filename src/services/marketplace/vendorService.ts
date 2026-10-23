@@ -5,6 +5,7 @@ export type SellerProfile = Database['public']['Tables']['seller_profiles']['Row
 export type VendorProduct = Database['public']['Tables']['products']['Row'] & { category: { name: string } | null }
 export type VendorInventory = Database['public']['Tables']['product_inventory']['Row'] & { product_name: string; variant_name: string | null }
 export type MarketplaceCase = Database['public']['Tables']['marketplace_cases']['Row']
+export type VendorOrderItem = Database['public']['Functions']['vendor_order_items']['Returns'][number]
 
 function assertError(error: { message: string } | null) {
   if (error) throw new Error(error.message)
@@ -66,6 +67,12 @@ export async function createVendorProduct(input: {
   return data
 }
 
+export async function updateVendorProduct(productId: string, input: { name: string; slug: string; sku: string | null; short_description: string; description: string; price: number; supplier_cost: number | null; fulfillment_expense: number; minimum_profit: number }) {
+  const { data, error } = await getSupabase().rpc('vendor_update_product', { p_product_id: productId, p_name: input.name, p_slug: input.slug, p_sku: input.sku, p_short_description: input.short_description, p_description: input.description, p_price: input.price, p_supplier_cost: input.supplier_cost, p_fulfillment_expense: input.fulfillment_expense, p_minimum_profit: input.minimum_profit })
+  assertError(error)
+  return data
+}
+
 export async function listOwnInventory(): Promise<VendorInventory[]> {
   const { data, error } = await getSupabase().from('product_inventory').select('id, product_id, variant_id, quantity, low_stock_threshold, updated_at, products!inner(name, seller_id), product_variants(option_label, option_value)').order('updated_at', { ascending: false }).limit(200)
   assertError(error)
@@ -89,5 +96,16 @@ export async function listOwnCases(): Promise<MarketplaceCase[]> {
 
 export async function respondToCase(id: string, seller_response: string) {
   const { error } = await getSupabase().from('marketplace_cases').update({ seller_response, status: 'seller_responded' }).eq('id', id)
+  assertError(error)
+}
+
+export async function listOwnOrderItems(): Promise<VendorOrderItem[]> {
+  const { data, error } = await getSupabase().rpc('vendor_order_items')
+  assertError(error)
+  return data ?? []
+}
+
+export async function updateOwnOrderItem(id: string, status: string, trackingNumber: string | null, trackingUrl: string | null, note: string | null) {
+  const { error } = await getSupabase().rpc('vendor_update_order_item', { p_item_id: id, p_status: status, p_tracking_number: trackingNumber, p_tracking_url: trackingUrl, p_vendor_note: note })
   assertError(error)
 }

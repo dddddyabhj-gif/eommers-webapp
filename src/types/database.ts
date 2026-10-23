@@ -35,6 +35,7 @@ type NotificationRow = { id: string; user_id: string; kind: NotificationKind; ti
 type AdminAuditLogRow = { id: string; actor_id: string | null; action: 'INSERT' | 'UPDATE' | 'DELETE'; entity: string; entity_id: string | null; details: Json; created_at: string }
 type SellerProfileRow = { id: string; user_id: string; shop_name: string; slug: string; description: string; contact_email: string | null; status: SellerStatus; rejection_reason: string | null; reviewed_by: string | null; reviewed_at: string | null; created_at: string; updated_at: string }
 type MarketplaceCaseRow = { id: string; order_id: string; order_item_id: string | null; buyer_id: string; seller_id: string | null; case_type: 'return' | 'refund' | 'complaint'; status: 'open' | 'seller_responded' | 'under_review' | 'approved' | 'rejected' | 'resolved'; reason: string; evidence_path: string | null; seller_response: string | null; admin_decision: string | null; decided_by: string | null; decided_at: string | null; created_at: string; updated_at: string }
+type VendorOrderItemRow = { id: string; order_id: string; order_number: string; product_name_snapshot: string; sku_snapshot: string | null; variant_snapshot: Json; quantity: number; unit_price: number; line_total: number; vendor_fulfillment_status: VendorFulfillmentStatus; tracking_number: string | null; tracking_url: string | null; vendor_note: string | null; vendor_updated_at: string | null; created_at: string }
 
 export interface Database {
   public: {
@@ -67,8 +68,12 @@ export interface Database {
       create_order: { Args: { p_customer_id: string | null; p_customer_name: string; p_customer_phone: string; p_shipping_address: Json; p_items: Json; p_customer_email?: string | null; p_delivery_fee?: number; p_payment_method?: PaymentMethod; p_customer_note?: string | null }; Returns: string }
       vendor_create_product: { Args: { p_category_id: string | null; p_name: string; p_slug: string; p_sku: string | null; p_short_description: string; p_description: string; p_price: number; p_supplier_cost: number | null; p_fulfillment_expense: number; p_minimum_profit: number; p_track_inventory?: boolean }; Returns: string }
       vendor_adjust_inventory: { Args: { p_inventory_id: string; p_new_quantity: number; p_note: string }; Returns: ProductInventoryRow }
+      vendor_update_product: { Args: { p_product_id: string; p_name: string; p_slug: string; p_sku: string | null; p_short_description: string; p_description: string; p_price: number; p_supplier_cost: number | null; p_fulfillment_expense: number; p_minimum_profit: number }; Returns: ProductRow }
+      vendor_order_items: { Args: Record<string, never>; Returns: VendorOrderItemRow[] }
+      vendor_update_order_item: { Args: { p_item_id: string; p_status: string; p_tracking_number?: string | null; p_tracking_url?: string | null; p_vendor_note?: string | null }; Returns: boolean }
       admin_review_seller: { Args: { p_seller_id: string; p_status: SellerStatus; p_reason?: string | null }; Returns: SellerProfileRow }
       admin_decide_marketplace_case: { Args: { p_case_id: string; p_status: string; p_decision: string }; Returns: MarketplaceCaseRow }
+      admin_moderate_product: { Args: { p_product_id: string; p_status: ModerationStatus; p_reason?: string | null }; Returns: ProductRow }
     }
     Enums: {
       app_role: AppRole
