@@ -565,3 +565,29 @@ button { font-family: var(--font-body); }
 @media (prefers-reduced-motion: reduce) {
   .shine-surface::after { animation: none !important; opacity: 0 !important; }
 }
+
+/* Marketplace vendor workspace */
+.vendor-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 820px; }
+.vendor-form h2, .vendor-stack h2 { grid-column: 1 / -1; margin: 0; color: var(--ink); font-size: 24px; }
+.vendor-form > p { grid-column: 1 / -1; margin: -10px 0 2px; color: var(--muted); font-size: 14px; }
+.vendor-form__actions { display: flex; align-items: center; gap: 18px; grid-column: 1 / -1; margin-top: 4px; }
+.vendor-status { display: grid; gap: 12px; }
+.vendor-status p { margin: 0; }
+.vendor-status__badge { display: inline-flex; align-items: center; gap: 7px; width: fit-content; padding: 7px 11px; border-radius: 999px; color: #5f463a; background: #f4e6dc; font-size: 12px; font-weight: 600; text-transform: capitalize; }
+.vendor-status__badge--approved { color: #345d45; background: #e2efe5; }
+.vendor-status__badge--rejected, .vendor-status__badge--suspended { color: #8a3c36; background: #f5e0de; }
+.vendor-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 30px 0; }
+.vendor-metrics > div { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; padding: 18px; border: 1px solid var(--line); background: #fff; }
+.vendor-metrics svg { grid-row: span 2; color: var(--terracotta-ink); }
+.vendor-metrics strong { font-size: 26px; line-height: 1; }
+.vendor-metrics span { color: var(--muted); font-size: 12px; }
+.vendor-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 22px; align-items: start; }
+.vendor-stack { display: grid; gap: 22px; }
+.vendor-list { display: grid; gap: 0; margin-top: 12px; border-top: 1px solid var(--line); }
+.vendor-list__row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.vendor-list__row > div { display: grid; gap: 3px; min-width: 0; }
+.vendor-list__row strong { overflow: hidden; color: var(--ink); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.vendor-list__row small { color: var(--muted); font-size: 11px; }
+.vendor-list__row > span { color: var(--terracotta-ink); font-size: 11px; text-transform: capitalize; }
+.vendor-error { display: flex; align-items: center; gap: 10px; color: #8a3c36; background: #f8e8e5; }
+@media (max-width: 780px) { .vendor-form, .vendor-grid { grid-template-columns: 1fr; } .vendor-metrics { gap: 8px; } .vendor-metrics > div { padding: 13px; } .vendor-metrics strong { font-size: 21px; } }

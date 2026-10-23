@@ -19,6 +19,7 @@ import { ConfirmationPage } from '../pages/ConfirmationPage'
 import { AboutPage, ContactPage, FAQPage, PrivacyPage, ShippingPage, ReturnsPage } from '../pages/InfoPages'
 import { AccountPage, LoginPage, RegisterPage, ForgotPasswordPage, VerifyEmailPage, VerifyOtpPage, ResetPasswordPage, LogoutPage } from '../pages/AuthPages'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { VendorApplicationPage, VendorDashboardPage } from '../pages/VendorPages'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -44,6 +45,8 @@ function Storefront() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-confirmation" element={<ConfirmationPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/vendor/apply" element={<VendorApplicationPage />} />
+        <Route path="/vendor" element={<VendorDashboardPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
