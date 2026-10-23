@@ -23,6 +23,13 @@ function throwIfAuthError<T extends { error: { message: string } | null }>(respo
   return response
 }
 
+function getSafeAuthRedirect(search: string, state: unknown) {
+  const queryTarget = new URLSearchParams(search).get('redirect')
+  const stateTarget = state && typeof state === 'object' && 'from' in state && typeof state.from === 'string' ? state.from : null
+  const target = queryTarget || stateTarget
+  return target && target.startsWith('/') && !target.startsWith('//') && !target.startsWith('/login') ? target : '/account'
+}
+
 function AuthStatusMessage({ status, message }: { status: AuthStatus; message: string }) {
   const { t } = useI18n()
   if (status === 'loading') return <p className="auth-status auth-status--loading" role="status" aria-live="polite"><Info size={17} aria-hidden="true" />{t('Connecting securely…')}</p>
@@ -103,7 +110,9 @@ export function AccountPage() {
 
 export function LoginPage() {
   const { t } = useI18n()
+  const location = useLocation()
   const navigate = useNavigate()
+  const redirectTarget = getSafeAuthRedirect(location.search, location.state)
   const [form, setForm] = useState(emptyCredentials)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [status, setStatus] = useState<AuthStatus>('ready')
@@ -124,14 +133,14 @@ export function LoginPage() {
         setStatus('success'); setMessage('Email verification may be required. Check your inbox or request another verification email.')
         return
       }
-      navigate('/account')
+      navigate(redirectTarget, { replace: true })
     } catch (error) {
       setStatus('error'); setMessage(describeError(error))
     }
   }
   const google = async () => {
     setStatus('loading'); setMessage('')
-    try { throwIfAuthError(await authService.signInWithGoogle()); setStatus('success'); setMessage('Redirecting to Google sign-in…') }
+    try { throwIfAuthError(await authService.signInWithGoogle(redirectTarget)); setStatus('success'); setMessage('Redirecting to Google sign-in…') }
     catch (error) { setStatus('error'); setMessage(describeError(error)) }
   }
   return <AuthLayout eyebrow="Authentication" title="Sign in to your account" intro="Sign in securely to manage your orders, wishlist, and account preferences."><form className="auth-form" onSubmit={submit} noValidate aria-busy={status === 'loading'}><AuthStatusMessage status={status} message={message} /><ProviderButton onClick={google} disabled={status === 'loading'} /><Divider /><AuthField label="Email" name="email" type="email" value={form.email} onChange={update} error={errors.email} autoComplete="email" /><PasswordField label="Password" name="password" value={form.password} onChange={update} error={errors.password} autoComplete="current-password" /><button className="auth-submit" type="submit" disabled={status === 'loading'}>{status === 'loading' ? t('Signing in…') : t('Log in')}<ArrowRight size={16} aria-hidden="true" /></button><Link className="auth-link auth-form__forgot" to="/forgot-password">{t('Forgot password?')}</Link><Link className="auth-link auth-form__forgot" to="/verify-email">{t('Resend verification email')}</Link></form><AuthLinks mode="login" /></AuthLayout>

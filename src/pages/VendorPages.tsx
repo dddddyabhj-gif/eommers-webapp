@@ -1,14 +1,20 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { AlertCircle, Boxes, CheckCircle2, ClipboardList, Store, RefreshCw } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { adjustOwnInventory, applyAsSeller, createVendorProduct, getOwnSellerProfile, listOwnCases, listOwnInventory, listOwnOrderItems, listOwnProducts, respondToCase, updateOwnOrderItem, updateVendorProduct, type MarketplaceCase, type SellerProfile, type VendorInventory, type VendorProduct } from '../services/marketplace/vendorService'
 
+function SignInForVendor() {
+  const location = useLocation()
+  const returnTo = `${location.pathname}${location.search}${location.hash}`
+  return <Navigate to={`/login?redirect=${encodeURIComponent(returnTo)}`} replace state={{ from: returnTo }} />
+}
+
 function VendorGate({ children }: { children: React.ReactNode }) {
   const { user, loading, configured } = useAuth()
   if (loading) return <section className="page-shell"><div className="placeholder-panel"><RefreshCw className="spin" size={18} /> Loading your seller account…</div></section>
-  if (!configured || !user) return <Navigate to="/login" replace />
+  if (!configured || !user) return <SignInForVendor />
   return <>{children}</>
 }
 
@@ -19,7 +25,7 @@ export function VendorApplicationPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   useEffect(() => { void getOwnSellerProfile().then(setProfile).catch(() => undefined).finally(() => setLoading(false)) }, [])
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <SignInForVendor />
   if (loading) return <section className="page-shell"><div className="placeholder-panel">Loading seller application…</div></section>
   if (profile) return <VendorStatusCard profile={profile} />
   async function submit(event: FormEvent<HTMLFormElement>) {

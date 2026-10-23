@@ -36,10 +36,10 @@ export const authService = {
     return getSupabase().auth.updateUser({ password })
   },
 
-  signInWithGoogle() {
+  signInWithGoogle(redirectPath = '/account') {
     return getSupabase().auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: redirect('/account') },
+      options: { redirectTo: redirect(redirectPath) },
     })
   },
 
